@@ -8,7 +8,7 @@ body {
 
 h1 {
   margin: 0 0 24px;
-  font-size: 2.8rem;
+  font-size: clamp(2rem, 6vw, 2.8rem);
   font-weight: 800;
   letter-spacing: 0.08em;
   color: #c96a2d;
@@ -68,6 +68,31 @@ h1 {
   cursor: pointer;
 }
 
+.menu-item.recipe-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-item.recipe-toggle::before {
+  content: "＋";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: #f4d7b5;
+  color: #8d3d18;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.menu-item.recipe-toggle.is-open::before {
+  content: "−";
+}
+
 .recipe-panel {
   margin-top: 8px;
   padding: 14px 16px;
@@ -104,4 +129,99 @@ h1 {
 
 .side-item {
   color: #315d43;
+}
+
+.recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.servings-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #e3d2af;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.servings-label {
+  font-size: 0.85rem;
+  color: #5b4a3d;
+}
+
+.servings-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #f4d7b5;
+  color: #8d3d18;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.servings-input {
+  width: 42px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1rem;
+  color: #2f2f2f;
+}
+
+.servings-input:focus {
+  outline: none;
+}
+
+@media (max-width: 560px) {
+  body {
+    padding: 20px 14px 28px;
+  }
+
+  .menu-lists {
+    display: block;
+  }
+
+  #main-list,
+  #side-list {
+    width: auto;
+    min-width: 0;
+    padding: 16px 14px;
+    margin-bottom: 18px;
+  }
+
+  .menu-items {
+    gap: 8px;
+  }
+
+  .menu-item {
+    padding: 10px 12px;
+    font-size: 0.96rem;
+  }
+
+  .recipe-panel {
+    padding: 12px 12px 10px;
+  }
+
+  .recipe-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .servings-control {
+    align-self: flex-end;
+  }
+
+  .recipe-panel ul,
+  .recipe-panel ol {
+    padding-left: 1.1rem;
+  }
 }
