@@ -1,0 +1,107 @@
+body {
+  margin: 0;
+  padding: 32px 24px;
+  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+  background: #f5f1e8;
+  color: #2f2f2f;
+}
+
+h1 {
+  margin: 0 0 24px;
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #c96a2d;
+}
+
+.menu-lists {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+#main-list,
+#side-list {
+  min-width: 180px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 2px solid #e3d2af;
+  background: #fffefb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+#main-list h2,
+#side-list h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+#main-list h2 {
+  color: #b7541a;
+  letter-spacing: 0.08em;
+}
+
+#side-list h2 {
+  color: #2d6b4c;
+  letter-spacing: 0.08em;
+}
+
+.menu-items {
+  margin: 12px 0 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item {
+  margin: 0;
+  padding: 10px 14px;
+  line-height: 1.5;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid #e3d2af;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.recipe-panel {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fff7ef;
+  border: 1px solid #f0d3ad;
+  color: #3b2f2a;
+}
+
+.recipe-panel h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: #8d3d18;
+}
+
+.recipe-panel ul,
+.recipe-panel ol {
+  margin: 0 0 12px;
+  padding-left: 1.3rem;
+}
+
+.recipe-panel li {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.hidden {
+  display: none;
+}
+
+.main-item {
+  color: #8d3d18;
+}
+
+.side-item {
+  color: #315d43;
+}
