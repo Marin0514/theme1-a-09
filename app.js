@@ -276,6 +276,56 @@ const scaleIngredientText = (text, ratio) => {
   });
 };
 
+const ensureIngredientCheckboxes = () => {
+  document.querySelectorAll('.recipe-panel > ul > li').forEach((item) => {
+    if (item.querySelector('.ingredient-check')) return;
+
+    const text = item.textContent.trim();
+    const label = document.createElement('label');
+    label.className = 'ingredient-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'ingredient-check';
+    checkbox.setAttribute('aria-label', '材料をチェック');
+
+    const textNode = document.createElement('span');
+    textNode.className = 'ingredient-text';
+    textNode.textContent = text;
+
+    label.appendChild(checkbox);
+    label.appendChild(textNode);
+
+    item.textContent = '';
+    item.appendChild(label);
+    item.dataset.originalText = text;
+  });
+};
+
+const ensureRecipeStepCheckboxes = () => {
+  document.querySelectorAll('.recipe-panel > ol > li').forEach((item) => {
+    if (item.querySelector('.step-check')) return;
+
+    const wrapper = document.createElement('label');
+    wrapper.className = 'step-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'step-check';
+    checkbox.setAttribute('aria-label', '作り方をチェック');
+
+    const content = document.createElement('span');
+    content.className = 'step-content';
+    content.innerHTML = item.innerHTML;
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(content);
+
+    item.innerHTML = '';
+    item.appendChild(wrapper);
+  });
+};
+
 const syncIngredientServings = (control) => {
   const panel = control.closest('.recipe-panel');
   if (!panel) return;
@@ -289,6 +339,13 @@ const syncIngredientServings = (control) => {
   ingredientItems.forEach((item) => {
     const originalText = item.dataset.originalText || item.textContent.trim();
     item.dataset.originalText = originalText;
+
+    const ingredientText = item.querySelector('.ingredient-text');
+    if (ingredientText) {
+      ingredientText.textContent = scaleIngredientText(originalText, ratio);
+      return;
+    }
+
     item.textContent = scaleIngredientText(originalText, ratio);
   });
 };
@@ -340,10 +397,13 @@ const injectServingsControls = () => {
     firstHeading.remove();
   });
 
+  ensureIngredientCheckboxes();
+  ensureRecipeStepCheckboxes();
+
   document.querySelectorAll('.servings-control').forEach((control) => {
     const ingredientItems = control.closest('.recipe-panel')?.querySelectorAll(':scope > ul > li');
     ingredientItems?.forEach((item) => {
-      item.dataset.originalText = item.textContent.trim();
+      item.dataset.originalText = item.dataset.originalText || item.querySelector('.ingredient-text')?.textContent?.trim() || item.textContent.trim();
     });
 
     syncIngredientServings(control);
