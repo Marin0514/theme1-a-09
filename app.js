@@ -1,5 +1,52 @@
 const recipeToggles = document.querySelectorAll('.recipe-toggle');
 
+const parseNumberToken = (value) => {
+  if (!value) return 0;
+  if (value.includes('/')) {
+    const [numerator, denominator] = value.split('/').map(Number);
+    return numerator / denominator;
+  }
+  return Number(value);
+};
+
+const formatScaledValue = (value) => {
+  if (Math.abs(value - Math.round(value)) < 1e-9) {
+    return String(Math.round(value));
+  }
+
+  return Number(value.toFixed(3)).toString();
+};
+
+const scaleIngredientText = (text, ratio) => {
+  return text.replace(/(\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?)(?:〜(\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?))?/g, (match, left, right) => {
+    const leftValue = parseNumberToken(left) * ratio;
+
+    if (right !== undefined) {
+      const rightValue = parseNumberToken(right) * ratio;
+      return `${formatScaledValue(leftValue)}〜${formatScaledValue(rightValue)}`;
+    }
+
+    return formatScaledValue(leftValue);
+  });
+};
+
+const syncIngredientServings = (control) => {
+  const panel = control.closest('.recipe-panel');
+  if (!panel) return;
+
+  const input = control.querySelector('.servings-input');
+  const baseServings = Number(control.dataset.baseServings) || 1;
+  const servings = Number(input.value) || 1;
+  const ratio = servings / baseServings;
+
+  const ingredientItems = panel.querySelectorAll(':scope > ul > li');
+  ingredientItems.forEach((item) => {
+    const originalText = item.dataset.originalText || item.textContent.trim();
+    item.dataset.originalText = originalText;
+    item.textContent = scaleIngredientText(originalText, ratio);
+  });
+};
+
 recipeToggles.forEach((button) => {
   button.addEventListener('click', () => {
     const targetId = button.dataset.target;
@@ -46,6 +93,15 @@ const injectServingsControls = () => {
     panel.insertBefore(header, firstHeading);
     firstHeading.remove();
   });
+
+  document.querySelectorAll('.servings-control').forEach((control) => {
+    const ingredientItems = control.closest('.recipe-panel')?.querySelectorAll(':scope > ul > li');
+    ingredientItems?.forEach((item) => {
+      item.dataset.originalText = item.textContent.trim();
+    });
+
+    syncIngredientServings(control);
+  });
 };
 
 injectServingsControls();
@@ -66,6 +122,7 @@ servingsControls.forEach((control) => {
   const updateValue = (nextValue) => {
     const safeValue = clampServings(nextValue);
     input.value = safeValue;
+    syncIngredientServings(control);
   };
 
   minusButton.addEventListener('click', () => {
