@@ -9,6 +9,19 @@
   <body>
     <h1>OkazuNOTE</h1>
 
+    <div class="recipe-search" aria-label="材料から料理を検索">
+      <label for="ingredient-search" class="search-label">材料から検索</label>
+      <input
+        id="ingredient-search"
+        type="search"
+        name="ingredient-search"
+        placeholder="例: 鶏もも肉、玉ねぎ"
+        autocomplete="off"
+      />
+      <div id="ingredient-search-suggestions" class="search-suggestions" aria-live="polite"></div>
+      <p id="search-status" class="search-status hidden" aria-live="polite"></p>
+    </div>
+
     <div class="menu-lists">
       <div id="main-list">
         <h2>主菜</h2>
@@ -581,7 +594,9 @@
             <ol>
               <li><strong>切る</strong><div>ちくわは斜め半分に切ります（長ければさらに半分に）。</div></li>
               <li><strong>衣を作る</strong><div>小さめの器に小麦粉、青のり、冷水を入れてダマが少し残る程度にさっくり混ぜ、ちくわ全体に絡めます。</div></li>
-              <li><strong>揚げる</strong><div>フライパンに油を170℃に熱し、ちくわを入れて衣がカリッとするまで1〜2分揚げ焼きにして油を切ります。</div></li>
+              <li><strong>揚げる</strong>
+                <div>フライパンに油を170℃に熱し、ちくわを入れて衣がカリッとするまで1〜2分揚げ焼きにして油を切ります。</div>
+              </li>
             </ol>
           </div>
 
