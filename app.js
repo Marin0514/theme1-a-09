@@ -1,4 +1,250 @@
 const recipeToggles = document.querySelectorAll('.recipe-toggle');
+const ingredientSearchInput = document.getElementById('ingredient-search');
+const searchStatus = document.getElementById('search-status');
+const ingredientSearchSuggestions = document.getElementById('ingredient-search-suggestions');
+
+const japaneseSearchAliases = {
+  'たまねぎ': ['玉ねぎ', 'タマネギ', 'たまねぎ'],
+  'ごぼう': ['ごぼう', 'ゴボウ'],
+  'にんじん': ['にんじん', 'ニンジン'],
+  'ほうれんそう': ['ほうれん草', 'ホウレンソウ', 'ほうれんそう'],
+  'ちくわ': ['ちくわ', 'チクワ'],
+  'かぼちゃ': ['かぼちゃ', 'カボチャ'],
+  'こまつな': ['小松菜', 'コマツナ', 'こまつな'],
+  'あぶらあげ': ['油揚げ', 'アブラアゲ', 'あぶらあげ'],
+  'とりももにく': ['鶏もも肉', 'トリモモニク', 'とりももにく'],
+  'とりひきにく': ['鶏ひき肉', 'トリヒキニク', 'とりひきにく'],
+  'ぶたにく': ['豚肉', 'ブタニク', 'ぶたにく'],
+  'しょうゆ': ['醤油', 'ショクヨウ', 'しょうゆ'],
+  'みりん': ['みりん', 'ミリン'],
+  'しょうが': ['生姜', 'ショウガ', 'しょうが'],
+  'えび': ['エビ', 'えび'],
+  'はむ': ['ハム', 'はむ'],
+  'だし': ['だし', 'ダシ'],
+  'こしょう': ['こしょう', 'コショウ'],
+  'さけ': ['鮭', 'サケ', 'さけ'],
+  'さば': ['鯖', 'サバ', 'さば'],
+  'あじ': ['鯵', 'アジ', 'あじ'],
+  'たまご': ['卵', 'タマゴ', 'たまご'],
+};
+
+const kanjiToHiraganaMap = {
+  '玉ねぎ': 'たまねぎ',
+  'タマネギ': 'たまねぎ',
+  '玉葱': 'たまねぎ',
+  '卵': 'たまご',
+  'タマゴ': 'たまご',
+  '生姜': 'しょうが',
+  'ショウガ': 'しょうが',
+  '鶏もも肉': 'とりももにく',
+  'トリモモニク': 'とりももにく',
+  '鶏ひき肉': 'とりひきにく',
+  'トリヒキニク': 'とりひきにく',
+  '豚肉': 'ぶたにく',
+  'ブタニク': 'ぶたにく',
+  '醤油': 'しょうゆ',
+  'ショクヨウ': 'しょうゆ',
+  'ごぼう': 'ごぼう',
+  'ゴボウ': 'ごぼう',
+  'にんじん': 'にんじん',
+  'ニンジン': 'にんじん',
+  'ほうれん草': 'ほうれんそう',
+  'ホウレンソウ': 'ほうれんそう',
+  '小松菜': 'こまつな',
+  'コマツナ': 'こまつな',
+  '油揚げ': 'あぶらあげ',
+  'アブラアゲ': 'あぶらあげ',
+  '鮭': 'さけ',
+  'サケ': 'さけ',
+  '鯖': 'さば',
+  'サバ': 'さば',
+  '鯵': 'あじ',
+  'アジ': 'あじ',
+  'エビ': 'えび',
+  'ハム': 'はむ',
+  '片栗粉': 'かたくりこ',
+  'じゃがいも': 'じゃがいも',
+  'きゅうり': 'きゅうり',
+};
+
+const clearSearchState = () => {
+  recipeToggles.forEach((toggle) => {
+    toggle.style.display = '';
+  });
+
+  document.querySelectorAll('.recipe-panel').forEach((panel) => {
+    panel.classList.add('hidden');
+  });
+
+  if (searchStatus) {
+    searchStatus.textContent = '';
+    searchStatus.classList.add('hidden');
+  }
+
+  if (ingredientSearchSuggestions) {
+    ingredientSearchSuggestions.innerHTML = '';
+    ingredientSearchSuggestions.classList.add('hidden');
+  }
+};
+
+const normalizeJapaneseText = (value = '') => {
+  let text = String(value).normalize('NFKC');
+
+  Object.entries(kanjiToHiraganaMap).forEach(([source, target]) => {
+    text = text.split(source).join(target);
+  });
+
+  text = text
+    .replace(/[ァ-ヶ]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0x60))
+    .replace(/ー/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[、。！？]/g, '')
+    .toLowerCase();
+
+  return text;
+};
+
+const getSearchVariants = (value = '') => {
+  const normalized = normalizeJapaneseText(value);
+  const variants = new Set([normalized]);
+
+  Object.entries(japaneseSearchAliases).forEach(([canonical, aliases]) => {
+    const normalizedCanonical = normalizeJapaneseText(canonical);
+    const normalizedAliases = aliases.map((alias) => normalizeJapaneseText(alias));
+
+    const shouldAdd =
+      normalized.includes(normalizedCanonical) ||
+      normalizedAliases.some((alias) => normalized.includes(alias));
+
+    if (shouldAdd) {
+      variants.add(normalizedCanonical);
+      normalizedAliases.forEach((alias) => variants.add(alias));
+    }
+  });
+
+  return [...variants].filter((variant) => variant.length > 0);
+};
+
+const getMaterialCandidates = () => {
+  const candidates = new Set();
+
+  document.querySelectorAll('.recipe-panel').forEach((panel) => {
+    const materials = panel.querySelectorAll(':scope > ul > li');
+    materials.forEach((item) => {
+      const text = item.textContent.trim();
+      const materialName = text.split('：')[0].trim();
+      if (materialName) {
+        candidates.add(materialName);
+      }
+    });
+  });
+
+  return [...candidates];
+};
+
+const materialCandidates = getMaterialCandidates();
+
+const panelMaterialTerms = (panel) => {
+  return Array.from(panel.querySelectorAll(':scope > ul > li'))
+    .map((item) => item.textContent.trim().split('：')[0].trim())
+    .filter(Boolean);
+};
+
+const renderSuggestions = (query) => {
+  if (!ingredientSearchSuggestions) return;
+
+  const normalizedQuery = normalizeJapaneseText(query);
+
+  if (!normalizedQuery) {
+    ingredientSearchSuggestions.innerHTML = '';
+    ingredientSearchSuggestions.classList.add('hidden');
+    return;
+  }
+
+  const suggestions = materialCandidates
+    .filter((candidate) => {
+      const normalizedCandidate = normalizeJapaneseText(candidate);
+      const candidateVariants = getSearchVariants(normalizedCandidate);
+      return candidateVariants.some((variant) => variant.includes(normalizedQuery));
+    })
+    .slice(0, 8);
+
+  if (!suggestions.length) {
+    ingredientSearchSuggestions.innerHTML = '';
+    ingredientSearchSuggestions.classList.add('hidden');
+    return;
+  }
+
+  ingredientSearchSuggestions.classList.remove('hidden');
+  ingredientSearchSuggestions.innerHTML = suggestions
+    .map((suggestion) => `<button type="button" class="suggestion-item">${suggestion}</button>`)
+    .join('');
+
+  ingredientSearchSuggestions.querySelectorAll('.suggestion-item').forEach((button) => {
+    button.addEventListener('click', () => {
+      ingredientSearchInput.value = button.textContent.trim();
+      ingredientSearchSuggestions.innerHTML = '';
+      ingredientSearchSuggestions.classList.add('hidden');
+      updateIngredientSearch();
+    });
+  });
+};
+
+const matchesIngredientSearch = (panel, searchQuery) => {
+  const normalizedQuery = normalizeJapaneseText(searchQuery);
+  if (!normalizedQuery) {
+    return false;
+  }
+
+  const terms = panelMaterialTerms(panel).map((term) => normalizeJapaneseText(term));
+
+  return terms.some((term) => {
+    const variants = getSearchVariants(term);
+    return variants.some((variant) => variant.includes(normalizedQuery));
+  });
+};
+
+const updateIngredientSearch = () => {
+  if (!ingredientSearchInput) return;
+
+  const query = ingredientSearchInput.value.trim();
+  renderSuggestions(query);
+
+  if (!query) {
+    clearSearchState();
+    return;
+  }
+
+  let matchCount = 0;
+
+  recipeToggles.forEach((toggle) => {
+    const targetId = toggle.dataset.target;
+    const panel = document.getElementById(targetId);
+
+    if (!panel) {
+      toggle.style.display = 'none';
+      return;
+    }
+
+    const hasMatch = matchesIngredientSearch(panel, query);
+
+    toggle.style.display = hasMatch ? '' : 'none';
+    panel.classList.toggle('hidden', !hasMatch);
+
+    if (hasMatch) {
+      matchCount += 1;
+    }
+  });
+
+  if (searchStatus) {
+    if (matchCount === 0) {
+      searchStatus.textContent = 'ヒットしませんでした';
+    } else {
+      searchStatus.textContent = `${matchCount}件ヒットしました`;
+    }
+    searchStatus.classList.remove('hidden');
+  }
+};
 
 const parseNumberToken = (value) => {
   if (!value) return 0;
@@ -138,3 +384,9 @@ servingsControls.forEach((control) => {
     updateValue(nextValue);
   });
 });
+
+if (ingredientSearchInput) {
+  ingredientSearchInput.addEventListener('input', () => {
+    updateIngredientSearch();
+  });
+}
